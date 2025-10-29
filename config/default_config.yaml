@@ -1,0 +1,30 @@
+# Default configuration for IVF-CE
+
+dataset:
+  name: "sift1m"
+  path: "data/"
+  dimension: 128
+  
+clustering:
+  n_clusters: 256
+  max_iter: 100
+  n_init: 10
+  
+indexing:
+  p_index: 10
+  k1: 30
+  m_max: 16
+
+query:
+  n1: 5
+  n2: 10
+  k2: 100
+  K: 10
+
+evaluation:
+  n_queries: 1000
+  recall_at_k: [1, 10, 100]
+  
+logging:
+  level: "INFO"
+  save_path: "results/logs/"
