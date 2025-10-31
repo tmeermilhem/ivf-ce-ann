@@ -9,10 +9,10 @@ import numpy as np
 
 try:
     import faiss  # type: ignore
-except ImportError:  # pragma: no cover - faiss not always installed in CI
-    faiss = None
-
-from sklearn.cluster import KMeans
+except ImportError as exc:  # pragma: no cover
+    raise ImportError(
+        "faiss is required for clustering. Install faiss-cpu from requirements.txt."
+    ) from exc
 
 
 @dataclass
@@ -37,16 +37,7 @@ def train_kmeans(
     if vectors.shape[0] < n_clusters:
         raise ValueError("Number of vectors must be at least n_clusters")
 
-    if faiss is not None:
-        return _train_faiss_kmeans(
-            vectors,
-            n_clusters=n_clusters,
-            n_init=n_init,
-            max_iter=max_iter,
-            seed=seed,
-        )
-
-    return _train_sklearn_kmeans(
+    return _train_faiss_kmeans(
         vectors,
         n_clusters=n_clusters,
         n_init=n_init,
@@ -78,24 +69,3 @@ def _train_faiss_kmeans(
     assignments = assignments[:, 0].astype(np.int32)
     centroids = np.array(kmeans.centroids, dtype=np.float32)
     return KMeansResult(centroids=centroids, assignments=assignments)
-
-
-def _train_sklearn_kmeans(
-    vectors: np.ndarray,
-    *,
-    n_clusters: int,
-    n_init: int,
-    max_iter: int,
-    seed: Optional[int],
-) -> KMeansResult:
-    kmeans = KMeans(
-        n_clusters=n_clusters,
-        init="k-means++",
-        n_init=n_init,
-        max_iter=max_iter,
-        random_state=seed,
-        verbose=0,
-    )
-    assignments = kmeans.fit_predict(vectors)
-    centroids = kmeans.cluster_centers_.astype(np.float32)
-    return KMeansResult(centroids=centroids, assignments=assignments.astype(np.int32))
